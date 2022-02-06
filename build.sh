@@ -1,0 +1,1 @@
+gcc midi-channel.c -o out -lasound
