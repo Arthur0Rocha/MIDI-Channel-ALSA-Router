@@ -29,7 +29,7 @@
 // } snd_seq_event_t;
 
 static snd_seq_t *seq_handle;
-static int in_port;
+static int in_port, out_port;
 
 void midi_open(void)
 {
@@ -42,6 +42,10 @@ void midi_open(void)
                       SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE,
                       SND_SEQ_PORT_TYPE_APPLICATION),
         "Could not open port");
+    CHK(out_port = snd_seq_create_simple_port(seq_handle, "listen:out",
+                      SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ,
+                      SND_SEQ_PORT_TYPE_APPLICATION),
+        "Could not open port");
 }
 
 snd_seq_event_t *midi_read(void)
@@ -51,19 +55,32 @@ snd_seq_event_t *midi_read(void)
     return ev;
 }
 
+void send_midi_ev() {
+    snd_seq_event_t ev;
+
+    snd_seq_ev_set_noteon(&ev, 2, 0x42, 0x7F);
+
+    snd_seq_event_output(seq_handle, &ev);
+    snd_seq_drain_output(seq_handle);
+}
+
 void midi_process(snd_seq_event_t *ev)
 {
     if ((ev->type == SND_SEQ_EVENT_NOTEON)||(ev->type == SND_SEQ_EVENT_NOTEOFF)) {
         const char *type = (ev->type == SND_SEQ_EVENT_NOTEON) ? "on " : "off";
 
-        printf("[%d] Note %s: %2x vel(%2x)\n", ev->time.tick, type,
+        printf("[%d] Note %s: %2x vel(%2x) chan(%d)\n", ev->time.tick, type,
                                                ev->data.note.note,
-                                               ev->data.note.velocity);
+                                               ev->data.note.velocity,
+                                               ev->source.port);
+        
     }
-    else if(ev->type == SND_SEQ_EVENT_CONTROLLER)
-        printf("[%d] Control:  %2x val(%2x)\n", ev->time.tick,
+    else if(ev->type == SND_SEQ_EVENT_CONTROLLER){
+        printf("[%d] Control:  %2x val(%2x) chan(%d)\n", ev->time.tick,
                                                 ev->data.control.param,
-                                                ev->data.control.value);
+                                                ev->data.control.value,
+                                                ev->data.control.channel);
+    }
     else
         printf("[%d] Unknown:  Unhandled Event Received\n", ev->time.tick);
 }
@@ -71,7 +88,11 @@ void midi_process(snd_seq_event_t *ev)
 int main()
 {
     midi_open();
-    while (1)
-        midi_process(midi_read());
+    while (1) {
+        if (getc(stdin)) {
+            send_midi_ev();
+        }
+        // midi_process(midi_read());
+    }
     return -1;
 }
