@@ -33,7 +33,7 @@ static int in_port, out_port;
 
 void midi_open(void)
 {
-    CHK(snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_INPUT, 0),
+    CHK(snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_DUPLEX, 0),
         "Could not open sequencer");
 
     CHK(snd_seq_set_client_name(seq_handle, "Midi Listener"),
@@ -68,6 +68,22 @@ void send_midi_ev() {
     snd_seq_drain_output(seq_handle);
 }
 
+void send_ev_diff_channel(snd_seq_event_t *ev, char channel) {
+
+    if ((ev->type == SND_SEQ_EVENT_NOTEON)||(ev->type == SND_SEQ_EVENT_NOTEOFF))
+        ev->data.note.channel = channel;
+    else if (ev->type == SND_SEQ_EVENT_CONTROLLER)
+        ev->data.control.channel = channel;
+
+
+    snd_seq_ev_set_source(ev, out_port);
+    snd_seq_ev_set_subs(ev);
+    snd_seq_ev_set_direct(ev);
+    snd_seq_event_output_direct(seq_handle, ev);
+
+    snd_seq_drain_output(seq_handle);
+}
+
 void midi_process(snd_seq_event_t *ev)
 {
     if ((ev->type == SND_SEQ_EVENT_NOTEON)||(ev->type == SND_SEQ_EVENT_NOTEOFF)) {
@@ -87,17 +103,20 @@ void midi_process(snd_seq_event_t *ev)
     }
     else
         printf("[%d] Unknown:  Unhandled Event Received\n", ev->time.tick);
+
+
+    send_ev_diff_channel(ev, 13);
 }
 
 int main()
 {
     midi_open();
     while (1) {
-        if (getchar() == 'a') {
-            send_midi_ev();
-            printf("Sending MIDI\n");
-        }
-        // midi_process(midi_read());
+        // if (getchar() == 'a') {
+        //     send_midi_ev();
+        //     printf("Sending MIDI\n");
+        // }
+        midi_process(midi_read());
     }
     return -1;
 }
