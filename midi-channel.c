@@ -60,7 +60,11 @@ void send_midi_ev() {
 
     snd_seq_ev_set_noteon(&ev, 2, 0x42, 0x7F);
 
-    snd_seq_event_output(seq_handle, &ev);
+    snd_seq_ev_set_source(&ev, out_port);
+    snd_seq_ev_set_subs(&ev);
+    snd_seq_ev_set_direct(&ev);
+    snd_seq_event_output_direct(seq_handle, &ev);
+
     snd_seq_drain_output(seq_handle);
 }
 
@@ -89,8 +93,9 @@ int main()
 {
     midi_open();
     while (1) {
-        if (getc(stdin)) {
+        if (getchar() == 'a') {
             send_midi_ev();
+            printf("Sending MIDI\n");
         }
         // midi_process(midi_read());
     }
