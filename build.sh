@@ -1,1 +1,1 @@
-gcc midi-channel.c -o out -lasound
+gcc src/alsainterface.c src/program.c -o bin/out -lasound
