@@ -1,1 +1,1 @@
-gcc src/alsainterface.c src/program.c -o bin/out -lasound
+gcc src/alsainterface.c src/program.c -o out -lasound
