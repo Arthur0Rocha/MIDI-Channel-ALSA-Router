@@ -1,0 +1,10 @@
+#ifndef _ARTHUR_ALSA_MANAGER
+#define _ARTHUR_ALSA_MANAGER
+
+typedef enum {
+    STATUS_BYPASS,
+    STATUS_SEQUENCER,
+    STATUS_PROGRAM_CHANGE
+} status_manager_t;
+
+#endif // _ARTHUR_ALSA_MANAGER
