@@ -27,6 +27,18 @@ void midi_send(snd_seq_event_t *ev) {
     snd_seq_drain_output(seq_handle);
 }
 
+void connectKROME(uint8_t input, uint8_t output) { // TODO 
+    return;
+}
+
+void connectVORTEX() { // TODO
+    return;
+}
+
+void connectQSYNTH() {  // TODO
+    return;
+}
+
 void midi_updt_channel(snd_seq_event_t *ev, int channel) {
     ev->data.note.channel = channel;
 }
