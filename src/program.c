@@ -16,6 +16,8 @@
 
 #define PANIC 123
 
+//TODO check for hang notes or strange behaviours, to identify bug with vortex
+
 int main(int argc, char **argv) {
 
     snd_seq_event_t *ev = NULL;
